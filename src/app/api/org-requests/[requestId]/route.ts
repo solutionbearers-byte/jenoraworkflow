@@ -3,9 +3,9 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { requestId: string } }
+  context: { params: Promise<{ requestId: string }> }
 ) {
-  const { requestId } = params;
+  const { requestId } = await context.params;
 
   const { data, error } = await supabaseAdmin
     .from("org_requests")

@@ -11,9 +11,11 @@ type Role = {
   parent_role_id?: string | null;
 };
 
+type RoleNodeType = Role & { children: RoleNodeType[] };
+
 function buildRoleTree(roles: Role[]) {
-  const tree = new Map<string, Role & { children: Role[] }>();
-  const roots: (Role & { children: Role[] })[] = [];
+  const tree = new Map<string, RoleNodeType>();
+  const roots: RoleNodeType[] = [];
 
   roles.forEach(role => {
     tree.set(role.id, { ...role, children: [] });
@@ -30,7 +32,7 @@ function buildRoleTree(roles: Role[]) {
   return roots;
 }
 
-function RoleNode({ role }: { role: Role & { children: Role[] } }) {
+function RoleNode({ role }: { role: RoleNodeType }) {
   return (
     <li className="space-y-3">
       <div className="rounded-3xl border border-white/10 bg-white/5 p-4">

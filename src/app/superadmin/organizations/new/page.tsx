@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -14,8 +14,17 @@ function normalizeSlug(value: string) {
 }
 
 export default function NewOrganizationPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+
+  return (
+    <Suspense fallback={<p className="text-slate-300">Loading...</p>}>
+      <NewOrganizationForm router={router} />
+    </Suspense>
+  );
+}
+
+function NewOrganizationForm({ router }: { router: ReturnType<typeof useRouter> }) {
+  const searchParams = useSearchParams();
   const requestId = searchParams.get("requestId") ?? "";
 
   const [request, setRequest] = useState<any>(null);

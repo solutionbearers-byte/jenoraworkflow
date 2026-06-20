@@ -5,10 +5,12 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  context: { params: Promise<{ orgId: string }> }
 ) {
   const auth = requireSuperAdmin(req);
   if (auth instanceof NextResponse) return auth;
+
+  const { orgId } = await context.params;
 
   try {
     const { full_name, email, role_id, password } = await req.json();
@@ -18,6 +20,7 @@ export async function POST(
         { error: "Name, email, role, and password are required." },
         { status: 400 }
       );
+    }
 
     const { data: existingUser, error: existingUserError } = await supabaseAdmin
       .from("users")
@@ -38,7 +41,7 @@ export async function POST(
     const { data: user, error: userError } = await supabaseAdmin
       .from("users")
       .insert({
-        org_id: params.orgId,
+        org_id: orgId,
         full_name,
         email,
         password_hash,

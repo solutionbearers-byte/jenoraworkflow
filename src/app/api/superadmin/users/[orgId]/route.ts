@@ -5,11 +5,11 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  context: { params: Promise<{ orgId: string }> }
 ) {
   const auth = requireSuperAdmin(req);
   if (auth instanceof NextResponse) return auth;
-  const { orgId } = params;
+  const { orgId } = await context.params;
 
   const { data, error } = await supabaseAdmin
     .from("users")
@@ -36,10 +36,12 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  context: { params: Promise<{ orgId: string }> }
 ) {
   const auth = requireSuperAdmin(req);
   if (auth instanceof NextResponse) return auth;
+
+  const { orgId } = await context.params;
 
   try {
     const { full_name, email, role_id, password } = await req.json();
@@ -52,7 +54,7 @@ export async function POST(
 
     const { data: user, error: userError } = await supabaseAdmin
       .from("users")
-      .insert({ org_id: params.orgId, full_name, email, password_hash, is_active: true })
+      .insert({ org_id: orgId, full_name, email, password_hash, is_active: true })
       .select()
       .single();
 

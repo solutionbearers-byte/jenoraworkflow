@@ -4,11 +4,11 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  context: { params: Promise<{ orgId: string }> }
 ) {
   const auth = requireSuperAdmin(req);
   if (auth instanceof NextResponse) return auth;
-  const { orgId } = params;
+  const { orgId } = await context.params;
 
   const { data, error } = await supabaseAdmin
     .from("roles")
@@ -24,10 +24,12 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  context: { params: Promise<{ orgId: string }> }
 ) {
   const auth = requireSuperAdmin(req);
   if (auth instanceof NextResponse) return auth;
+
+  const { orgId } = await context.params;
 
   try {
     const { role_id, parent_role_id, name, hierarchy_level } = await req.json();
@@ -51,7 +53,7 @@ export async function POST(
 
     const { data, error } = await supabaseAdmin
       .from("roles")
-      .insert({ org_id: params.orgId, name, hierarchy_level: Number(hierarchy_level), parent_role_id: parent_role_id || null })
+      .insert({ org_id: orgId, name, hierarchy_level: Number(hierarchy_level), parent_role_id: parent_role_id || null })
       .select()
       .single();
 

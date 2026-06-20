@@ -4,12 +4,12 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { orgId: string } }
+  context: { params: Promise<{ orgId: string }> }
 ) {
   const auth = requireSuperAdmin(req);
   if (auth instanceof NextResponse) return auth;
   try {
-    const { orgId } = params;
+    const { orgId } = await context.params;
 
     const { data, error } = await supabaseAdmin
       .from("organizations")
