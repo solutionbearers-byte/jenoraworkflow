@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSuperAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
+  const auth = requireSuperAdmin(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { request_id, name, slug, misc_buffer_pct } = await req.json();
 
@@ -10,6 +14,20 @@ export async function POST(req: NextRequest) {
         { error: "Request ID, org name, and slug are required." },
         { status: 400 }
       );
+    }
+
+    const { data: existingSlug, error: slugError } = await supabaseAdmin
+      .from("organizations")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (slugError) {
+      return NextResponse.json({ error: slugError.message }, { status: 500 });
+    }
+
+    if (existingSlug) {
+      return NextResponse.json({ error: "Slug already in use." }, { status: 409 });
     }
 
     const { data: request, error: requestError } = await supabaseAdmin

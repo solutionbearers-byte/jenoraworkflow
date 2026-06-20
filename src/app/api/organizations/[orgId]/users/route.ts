@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { requireSuperAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { orgId: string } }
 ) {
+  const auth = requireSuperAdmin(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { full_name, email, role_id, password } = await req.json();
 
@@ -14,6 +18,19 @@ export async function POST(
         { error: "Name, email, role, and password are required." },
         { status: 400 }
       );
+
+    const { data: existingUser, error: existingUserError } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingUserError) {
+      return NextResponse.json({ error: existingUserError.message }, { status: 500 });
+    }
+
+    if (existingUser) {
+      return NextResponse.json({ error: "A user with that email already exists." }, { status: 409 });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
