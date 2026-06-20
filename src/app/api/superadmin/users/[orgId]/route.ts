@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { requireSuperAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { orgId: string } }
 ) {
+  const auth = requireSuperAdmin(req);
+  if (auth instanceof NextResponse) return auth;
   const { orgId } = params;
 
   const { data, error } = await supabaseAdmin
@@ -35,6 +38,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { orgId: string } }
 ) {
+  const auth = requireSuperAdmin(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { full_name, email, role_id, password } = await req.json();
 

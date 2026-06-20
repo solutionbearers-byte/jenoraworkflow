@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSuperAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = requireSuperAdmin(req);
+  if (auth instanceof NextResponse) return auth;
+
   const { data, error } = await supabaseAdmin
     .from("organizations")
     .select("*")
@@ -13,6 +17,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = requireSuperAdmin(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { name, slug, misc_buffer_pct, contact_name, contact_email } = await req.json();
 

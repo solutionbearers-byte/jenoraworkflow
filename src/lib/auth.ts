@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
 export type AuthUser = {
@@ -20,4 +20,17 @@ export function getAuthUser(req: NextRequest): AuthUser | null {
   } catch {
     return null;
   }
+}
+
+export function requireSuperAdmin(req: NextRequest): AuthUser | NextResponse {
+  const user = getAuthUser(req);
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!user.is_super_admin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  return user;
 }

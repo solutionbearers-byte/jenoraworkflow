@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireSuperAdmin } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { orgId: string } }
 ) {
+  const auth = requireSuperAdmin(req);
+  if (auth instanceof NextResponse) return auth;
   try {
     const { orgId } = params;
 
